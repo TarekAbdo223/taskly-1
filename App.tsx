@@ -1,5 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import {
+  Alert,
   PixelRatio,
   Pressable,
   StyleSheet,
@@ -10,13 +11,34 @@ import {
 import { theme } from "./theme";
 
 export default function App() {
+  const HandleDelete = () => {
+    Alert.alert(
+      "Are you sure you want to delete this?",
+      "It will be gone for good",
+      [
+        {
+          text: "Yes",
+          onPress: () => {
+            console.log("Ok", "deleting");
+          },
+          style: "destructive",
+        },
+        {
+          text: "No",
+          onPress: () => console.log("Cancel", "cancelled"),
+          style: "cancel",
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.itemContainer}>
         <Text style={styles.itemText}>Coffe</Text>
         <TouchableOpacity
           style={styles.deleteButton}
-          onPress={() => console.log("clicked")}
+          onPress={HandleDelete}
           activeOpacity={0.8}
         >
           <Text style={styles.buttonText}>Delete</Text>
