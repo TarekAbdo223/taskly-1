@@ -20,6 +20,7 @@ export default function Layout() {
         name="counter"
         options={{
           title: "Coutner",
+          headerShown: false,
           tabBarIcon: ({ size, color }) => {
             return <AntDesign name="clockcircleo" size={size} color={color} />;
           },
