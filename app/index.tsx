@@ -19,17 +19,17 @@ type ShoppingListItemType = {
   id: string;
   name: string;
   completedAtTimestamp?: number;
+  lastUpdatedTimestamp?: number;
 };
 
-const initialList: ShoppingListItemType[] = [
-  { id: "1", name: "Coffe" },
-  { id: "2", name: "Tea" },
-  { id: "3", name: "Milk" },
-];
+// const initialList: ShoppingListItemType[] = [
+//   { id: "1", name: "Coffe" },
+//   { id: "2", name: "Tea" },
+//   { id: "3", name: "Milk" },
+// ];
 
 export default function App() {
-  const [shoppingList, setShoppingList] =
-    useState<ShoppingListItemType[]>(initialList);
+  const [shoppingList, setShoppingList] = useState<ShoppingListItemType[]>([]);
 
   const [val, setVal] = useState("");
 
@@ -41,7 +41,11 @@ export default function App() {
   function handleSubmit() {
     if (val) {
       const newShoppingList = [
-        { id: new Date().toTimeString(), name: val },
+        {
+          id: new Date().toTimeString(),
+          name: val,
+          lastUpdatedTimestamp: Date.now(),
+        },
         ...shoppingList,
       ];
       setShoppingList(newShoppingList);
@@ -59,6 +63,8 @@ export default function App() {
       item.id === id
         ? {
             ...item,
+            lastUpdatedTimestamp: Date.now(),
+
             completedAtTimestamp: item.completedAtTimestamp
               ? undefined
               : Date.now(),
@@ -72,7 +78,7 @@ export default function App() {
     <FlatList
       style={styles.container}
       stickyHeaderIndices={[0]}
-      data={shoppingList}
+      data={orderShoppingList(shoppingList)}
       ListEmptyComponent={() => {
         return (
           <View style={styles.listEmptyContainer}>
@@ -103,32 +109,29 @@ export default function App() {
         );
       }}
     />
-    // <ScrollView style={styles.container} stickyHeaderIndices={[0]}>
-    //   {/* <Link
-    //     href="/counter"
-    //     style={{ textAlign: "center", fontSize: 24, marginBottom: 18 }}
-    //   >
-    //     Go To Counter Page
-    //   </Link> */}
-    //   <View style={styles.inputContaienr}>
-    //     {/* <Text style={styles.label}>the Main input</Text> */}
-    //     <TextInput
-    //       placeholder="E.g. Coffee"
-    //       style={styles.textInput}
-    //       value={val}
-    //       onChangeText={handleInputs}
-    //       returnKeyType="done"
-    //       onSubmitEditing={handleSubmit}
-    //     />
-    //   </View>
-    //   {shoppingList.map((item) => (
-    //     <ShoppingListItem name={item.name} key={item.id} />
-    //   ))}
-    //   {/* <ShoppingListItem name="Tea" />
-    //   <ShoppingListItem name="Sugar" /> */}
-    //   <StatusBar style="auto" />
-    // </ScrollView>
   );
+}
+
+function orderShoppingList(shoppingList: ShoppingListItemType[]) {
+  return shoppingList.sort((item1, item2) => {
+    if (item1.completedAtTimestamp && item2.completedAtTimestamp) {
+      return item2.completedAtTimestamp - item1.completedAtTimestamp;
+    }
+
+    if (item1.completedAtTimestamp && !item2.completedAtTimestamp) {
+      return 1;
+    }
+
+    if (!item1.completedAtTimestamp && item2.completedAtTimestamp) {
+      return -1;
+    }
+
+    if (!item1.completedAtTimestamp && !item2.completedAtTimestamp) {
+      return item2.lastUpdatedTimestamp - item1.lastUpdatedTimestamp;
+    }
+
+    return 0;
+  });
 }
 
 const styles = StyleSheet.create({
