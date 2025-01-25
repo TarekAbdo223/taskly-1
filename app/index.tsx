@@ -18,12 +18,13 @@ import { useState } from "react";
 type ShoppingListItemType = {
   id: string;
   name: string;
+  completedAtTimestamp?: number;
 };
 
 const initialList: ShoppingListItemType[] = [
-  // { id: "1", name: "Coffe" },
-  // { id: "2", name: "Tea" },
-  // { id: "3", name: "Milk" },
+  { id: "1", name: "Coffe" },
+  { id: "2", name: "Tea" },
+  { id: "3", name: "Milk" },
 ];
 
 export default function App() {
@@ -46,6 +47,25 @@ export default function App() {
       setShoppingList(newShoppingList);
       setVal("");
     }
+  }
+
+  function handleDelete(id: string) {
+    const newShoppiongList = shoppingList.filter((item) => item.id !== id);
+    setShoppingList(newShoppiongList);
+  }
+
+  function handleToggleCompleted(id: string) {
+    const newShoppingList = shoppingList.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            completedAtTimestamp: item.completedAtTimestamp
+              ? undefined
+              : Date.now(),
+          }
+        : item
+    );
+    setShoppingList(newShoppingList);
   }
 
   return (
@@ -73,7 +93,14 @@ export default function App() {
         </View>
       }
       renderItem={({ item }) => {
-        return <ShoppingListItem name={item.name} />;
+        return (
+          <ShoppingListItem
+            name={item.name}
+            onDelete={() => handleDelete(item.id)}
+            onToggleCompleted={() => handleToggleCompleted(item.id)}
+            isCompleted={Boolean(item.completedAtTimestamp)}
+          />
+        );
       }}
     />
     // <ScrollView style={styles.container} stickyHeaderIndices={[0]}>
@@ -108,6 +135,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colorWhite,
+
     // alignItems: "center",
     // justifyContent: "center",
   },
