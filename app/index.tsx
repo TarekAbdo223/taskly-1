@@ -3,6 +3,7 @@ import {
   Alert,
   PixelRatio,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -36,16 +37,18 @@ export default function App() {
   }
 
   function handleSubmit() {
-    const newShoppingList = [
-      { id: new Date().toTimeString(), name: val },
-      ...shoppingList,
-    ];
-    setShoppingList(newShoppingList);
-    setVal("");
+    if (val) {
+      const newShoppingList = [
+        { id: new Date().toTimeString(), name: val },
+        ...shoppingList,
+      ];
+      setShoppingList(newShoppingList);
+      setVal("");
+    }
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} stickyHeaderIndices={[0]}>
       {/* <Link
         href="/counter"
         style={{ textAlign: "center", fontSize: 24, marginBottom: 18 }}
@@ -53,8 +56,9 @@ export default function App() {
         Go To Counter Page
       </Link> */}
       <View style={styles.inputContaienr}>
-        <Text style={styles.label}>the Main input</Text>
+        {/* <Text style={styles.label}>the Main input</Text> */}
         <TextInput
+          placeholder="E.g. Coffee"
           style={styles.textInput}
           value={val}
           onChangeText={handleInputs}
@@ -68,7 +72,7 @@ export default function App() {
       {/* <ShoppingListItem name="Tea" />
       <ShoppingListItem name="Sugar" /> */}
       <StatusBar style="auto" />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -95,5 +99,6 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 50,
     fontSize: 18,
+    backgroundColor: theme.colorWhite,
   },
 });
