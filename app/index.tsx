@@ -13,7 +13,10 @@ import {
 import { theme } from "../theme";
 import { ShoppingListItem } from "../components/ShoppingListItem";
 import { Link } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getFromStorage, saveToStorage } from "../utils/storage";
+
+const storageKey = "shopping-list";
 
 type ShoppingListItemType = {
   id: string;
@@ -38,6 +41,16 @@ export default function App() {
     console.log(inputText);
   }
 
+  useEffect(() => {
+    const fetchInitial = async () => {
+      const data = await getFromStorage(storageKey);
+      if (data) {
+        setShoppingList(data);
+      }
+    };
+    fetchInitial();
+  }, []);
+
   function handleSubmit() {
     if (val) {
       const newShoppingList = [
@@ -49,12 +62,14 @@ export default function App() {
         ...shoppingList,
       ];
       setShoppingList(newShoppingList);
+      saveToStorage(storageKey, shoppingList);
       setVal("");
     }
   }
 
   function handleDelete(id: string) {
     const newShoppiongList = shoppingList.filter((item) => item.id !== id);
+    saveToStorage(storageKey, shoppingList);
     setShoppingList(newShoppiongList);
   }
 
@@ -71,6 +86,8 @@ export default function App() {
           }
         : item
     );
+    saveToStorage(storageKey, newShoppingListr);
+
     setShoppingList(newShoppingList);
   }
 
