@@ -2,6 +2,7 @@ import { StatusBar } from "expo-status-bar";
 import {
   Alert,
   FlatList,
+  LayoutAnimation,
   PixelRatio,
   Pressable,
   ScrollView,
@@ -45,6 +46,7 @@ export default function App() {
     const fetchInitial = async () => {
       const data = await getFromStorage(storageKey);
       if (data) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setShoppingList(data);
       }
     };
@@ -61,6 +63,8 @@ export default function App() {
         },
         ...shoppingList,
       ];
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
       setShoppingList(newShoppingList);
       saveToStorage(storageKey, shoppingList);
       setVal("");
@@ -70,6 +74,8 @@ export default function App() {
   function handleDelete(id: string) {
     const newShoppiongList = shoppingList.filter((item) => item.id !== id);
     saveToStorage(storageKey, shoppingList);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
     setShoppingList(newShoppiongList);
   }
 
@@ -86,7 +92,8 @@ export default function App() {
           }
         : item
     );
-    saveToStorage(storageKey, newShoppingListr);
+    saveToStorage(storageKey, shoppingList);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
     setShoppingList(newShoppingList);
   }
