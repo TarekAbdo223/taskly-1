@@ -16,6 +16,7 @@ import { ShoppingListItem } from "../components/ShoppingListItem";
 import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import { getFromStorage, saveToStorage } from "../utils/storage";
+import * as Haptics from "expo-haptics";
 
 const storageKey = "shopping-list";
 
@@ -75,25 +76,31 @@ export default function App() {
     const newShoppiongList = shoppingList.filter((item) => item.id !== id);
     saveToStorage(storageKey, shoppingList);
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setShoppingList(newShoppiongList);
   }
 
   function handleToggleCompleted(id: string) {
-    const newShoppingList = shoppingList.map((item) =>
-      item.id === id
-        ? {
-            ...item,
-            lastUpdatedTimestamp: Date.now(),
-
-            completedAtTimestamp: item.completedAtTimestamp
-              ? undefined
-              : Date.now(),
-          }
-        : item
-    );
+    const newShoppingList = shoppingList.map((item) => {
+      if (item.id === id) {
+        if (item.completedAtTimestamp) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        } else {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+        return {
+          ...item,
+          lastUpdatedTimestamp: Date.now(),
+          completedAtTimestamp: item.completedAtTimestamp
+            ? undefined
+            : Date.now(),
+        };
+      }
+      return item;
+    });
     saveToStorage(storageKey, shoppingList);
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    console.log(shoppingList, "eelleelle");
 
     setShoppingList(newShoppingList);
   }
