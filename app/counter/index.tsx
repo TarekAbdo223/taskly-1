@@ -5,13 +5,39 @@ import { registerForPushNotificationsAsync } from "../../utils/registerForPushNo
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
+import { Duration, intervalToDuration, isBefore } from "date-fns";
+
+// 10 secodns later *from when i load the app*
+const timestamp = Date.now() + 10 * 1000;
+
+type CountdownStatus = {
+  isOverdue: boolean;
+  distance: Duration;
+};
+
 export default function CounterScreen() {
   //   const router = useRouter();
-  const [secondsElapsed, setSecondElapsed] = useState(0);
+  const [status, setStatus] = useState<CountdownStatus>({
+    isOverdue: false,
+    distance: {},
+  });
+  console.log(status);
+  // const [secondsElapsed, setSecondElapsed] = useState(0);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setSecondElapsed((prevState) => prevState + 1);
+      const isOverdue = isBefore(timestamp, Date.now());
+      // false or true
+      const distance = intervalToDuration(
+        isOverdue
+          ? { start: timestamp, end: Date.now() }
+          : {
+              start: Date.now(),
+              end: timestamp,
+            }
+      );
+      setStatus({ isOverdue, distance });
+      // setSecondElapsed((prevState) => prevState + 1);
     }, 1000);
 
     return () => {
@@ -43,7 +69,7 @@ export default function CounterScreen() {
   };
   return (
     <View style={styles.container}>
-      <Text>{secondsElapsed}</Text>
+      {/* <Text>{secondsElapsed}</Text> */}
       <TouchableOpacity
         style={styles.buttonContainer}
         activeOpacity={0.8}
