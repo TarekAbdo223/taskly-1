@@ -4,8 +4,20 @@ import { theme } from "../../theme";
 import { registerForPushNotificationsAsync } from "../../utils/registerForPushNotificationsAsync";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
+import { useEffect, useState } from "react";
 export default function CounterScreen() {
   //   const router = useRouter();
+  const [secondsElapsed, setSecondElapsed] = useState(0);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setSecondElapsed((prevState) => prevState + 1);
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
 
   const scheduleNotification = async () => {
     const result = await registerForPushNotificationsAsync();
@@ -31,6 +43,7 @@ export default function CounterScreen() {
   };
   return (
     <View style={styles.container}>
+      <Text>{secondsElapsed}</Text>
       <TouchableOpacity
         style={styles.buttonContainer}
         activeOpacity={0.8}
