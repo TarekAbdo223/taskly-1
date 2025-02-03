@@ -7,9 +7,17 @@ import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
 import { Duration, intervalToDuration, isBefore } from "date-fns";
 import { TimeSegment } from "../../components/TimeSegment";
+import { getFromStorage } from "../../utils/storage";
 
 // 10 secodns later *from when i load the app*
-const timestamp = Date.now() + 10 * 1000;
+const frequency = 10 * 1000;
+
+type countdownStorageKey = "taskly-countdown";
+
+type PresistedCountdownState = {
+  currentNotificationId: string | undefined;
+  completedAtTimestamps: number[];
+};
 
 type CountdownStatus = {
   isOverdue: boolean;
@@ -18,6 +26,8 @@ type CountdownStatus = {
 
 export default function CounterScreen() {
   //   const router = useRouter();
+  const [countdownState, setCountdownState] =
+    useState<PresistedCountdownState>();
   const [status, setStatus] = useState<CountdownStatus>({
     isOverdue: false,
     distance: {},
@@ -25,16 +35,26 @@ export default function CounterScreen() {
   console.log(status);
   // const [secondsElapsed, setSecondElapsed] = useState(0);
 
+  const lastCompletedTimestamp = countdownState?.completedAtTimestamps[0];
+
+  useEffect(() => {
+    const init = async () => {
+      const value = await getFromStorage(countdownStorageKey);
+      setCountdownState(value);
+    };
+    init();
+  }, []);
+
   useEffect(() => {
     const intervalId = setInterval(() => {
-      const isOverdue = isBefore(timestamp, Date.now());
+      const isOverdue = isBefore(lastCompletedTimestamp, Date.now());
       // false or true
       const distance = intervalToDuration(
         isOverdue
-          ? { start: timestamp, end: Date.now() }
+          ? { start: lastCompletedTimestamp, end: Date.now() }
           : {
               start: Date.now(),
-              end: timestamp,
+              end: lastCompletedTimestamp,
             }
       );
       setStatus({ isOverdue, distance });
@@ -165,5 +185,6 @@ const styles = StyleSheet.create({
   },
   whiteText: {
     color: theme.colorWhite,
+    backgroundColor: theme.colorWhite,
   },
 });
