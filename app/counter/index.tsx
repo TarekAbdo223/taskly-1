@@ -7,7 +7,7 @@ import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
 import { Duration, intervalToDuration, isBefore } from "date-fns";
 import { TimeSegment } from "../../components/TimeSegment";
-import { getFromStorage } from "../../utils/storage";
+import { getFromStorage, saveToStorage } from "../../utils/storage";
 
 // 10 secodns later *from when i load the app*
 const frequency = 10 * 1000;
@@ -47,14 +47,17 @@ export default function CounterScreen() {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      const isOverdue = isBefore(lastCompletedTimestamp, Date.now());
+      const timestamp = lastCompletedTimestamp
+        ? lastCompletedTimestamp + frequency
+        : Date.now();
+      const isOverdue = isBefore(timestamp, Date.now());
       // false or true
       const distance = intervalToDuration(
         isOverdue
-          ? { start: lastCompletedTimestamp, end: Date.now() }
+          ? { start: timestamp, end: Date.now() }
           : {
               start: Date.now(),
-              end: lastCompletedTimestamp,
+              end: timestamp,
             }
       );
       setStatus({ isOverdue, distance });
@@ -64,20 +67,25 @@ export default function CounterScreen() {
     return () => {
       clearInterval(intervalId);
     };
-  }, []);
+  }, [lastCompletedTimestamp]);
 
   const scheduleNotification = async () => {
+    let pushNotificationId;
     const result = await registerForPushNotificationsAsync();
     console.log(result);
     if (result === "granted") {
       console.log(Notifications.scheduleNotificationAsync);
 
-      await Notifications.scheduleNotificationAsync({
+      pushNotificationId = await Notifications.scheduleNotificationAsync({
         content: {
-          title: "I'm a notification from your app! 📨",
+          title: "The Thing is due!",
           body: "This is a test notification.",
         },
-        trigger: { seconds: 5, repeats: false, type: "timeInterval" },
+        trigger: {
+          seconds: frequency / 1000,
+          repeats: false,
+          type: "timeInterval",
+        },
       });
     } else {
       if (Device.isDevice) {
@@ -87,6 +95,19 @@ export default function CounterScreen() {
         );
       }
     }
+    if (countdownState?.currentNotificationId) {
+      await Notifications.cancelAllScheduledNotificationsAsync(
+        countdownState?.currentNotificationId
+      );
+    }
+    const newCountdownState: PresistedCountdownState = {
+      currentNotificationId: pushNotificationId,
+      completedAtTimestamps: countdownState?.completedAtTimestamps
+        ? [Date.now(), ...countdownState?.completedAtTimestamps]
+        : [Date.now()],
+    };
+    setCountdownState(newCountdownState);
+    await saveToStorage(countdownStorageKey, newCountdownState);
   };
   return (
     <View
@@ -185,6 +206,6 @@ const styles = StyleSheet.create({
   },
   whiteText: {
     color: theme.colorWhite,
-    backgroundColor: theme.colorWhite,
+    // backgroundColor: theme.colorWhite,
   },
 });
