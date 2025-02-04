@@ -1,5 +1,12 @@
 import { useRouter } from "expo-router";
-import { Text, View, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { theme } from "../../theme";
 import { registerForPushNotificationsAsync } from "../../utils/registerForPushNotificationsAsync";
 import * as Device from "expo-device";
@@ -12,7 +19,7 @@ import { getFromStorage, saveToStorage } from "../../utils/storage";
 // 10 secodns later *from when i load the app*
 const frequency = 10 * 1000;
 
-type countdownStorageKey = "taskly-countdown";
+const countdownStorageKey = "taskly-countdown";
 
 type PresistedCountdownState = {
   currentNotificationId: string | undefined;
@@ -25,6 +32,7 @@ type CountdownStatus = {
 };
 
 export default function CounterScreen() {
+  const [isLoading, setIsLoading] = useState(true);
   //   const router = useRouter();
   const [countdownState, setCountdownState] =
     useState<PresistedCountdownState>();
@@ -39,9 +47,28 @@ export default function CounterScreen() {
 
   useEffect(() => {
     const init = async () => {
-      const value = await getFromStorage(countdownStorageKey);
-      setCountdownState(value);
+      console.log("Fetching countdown state from storage...");
+      try {
+        const value = await getFromStorage(countdownStorageKey);
+        console.log("Fetched value:", value);
+
+        if (value) {
+          setCountdownState(value);
+        } else {
+          console.log("No previous countdown found. Setting default.");
+          setCountdownState({
+            currentNotificationId: undefined,
+            completedAtTimestamps: [],
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching from storage:", error);
+      } finally {
+        console.log("Setting isLoading to false.");
+        setIsLoading(false);
+      }
     };
+
     init();
   }, []);
 
@@ -50,6 +77,9 @@ export default function CounterScreen() {
       const timestamp = lastCompletedTimestamp
         ? lastCompletedTimestamp + frequency
         : Date.now();
+      if (lastCompletedTimestamp) {
+        setIsLoading(false);
+      }
       const isOverdue = isBefore(timestamp, Date.now());
       // false or true
       const distance = intervalToDuration(
@@ -109,6 +139,15 @@ export default function CounterScreen() {
     setCountdownState(newCountdownState);
     await saveToStorage(countdownStorageKey, newCountdownState);
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.activityIndicatorContainer}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
   return (
     <View
       style={[
@@ -207,5 +246,11 @@ const styles = StyleSheet.create({
   whiteText: {
     color: theme.colorWhite,
     // backgroundColor: theme.colorWhite,
+  },
+  activityIndicatorContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
+    backgroundColor: theme.colorWhite,
   },
 });
